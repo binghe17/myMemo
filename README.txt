@@ -1,8 +1,10 @@
 # javascript功能插件大集合，写前端的亲们记得收藏
 
-【导读】：GitHub 上有一个 Awesome – XXX 系列的资源整理。awesome-javascript 是 sorrycc 发起维护的 JS 资源列表，内容包括：包管理器、加载器、测试框架、运行器、QA、MVC框架和库、模板引擎、数据可视化、时间轴、编辑器等等。
+【导读】：GitHub 上有一个 Awesome – XXX 系列的资源整理。awesome-javascript 是 sorrycc 发起维护的 JS 资源列表，
+内容包括：包管理器、加载器、测试框架、运行器、QA、MVC框架和库、模板引擎、数据可视化、时间轴、编辑器等等。
 
-「JavaScript 资源大全中文版」的整理。欢迎扩散、欢迎加入。 https://github.com/jobbole/awesome-javascript-cn
+「JavaScript 资源大全中文版」的整理。欢迎扩散、欢迎加入。 
+https://github.com/jobbole/awesome-javascript-cn
 
 包管理器
 管理着 javascript 库，并提供读取和打包它们的工具。
