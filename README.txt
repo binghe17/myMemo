@@ -2,9 +2,7 @@
 
 【导读】：GitHub 上有一个 Awesome – XXX 系列的资源整理。awesome-javascript 是 sorrycc 发起维护的 JS 资源列表，内容包括：包管理器、加载器、测试框架、运行器、QA、MVC框架和库、模板引擎、数据可视化、时间轴、编辑器等等。
 
-伯乐在线已在 GitHub 上发起「JavaScript 资源大全中文版」的整理。欢迎扩散、欢迎加入。
-https://github.com/jobbole/awesome-javascript-cn
-js包下载地址：http://www.quzhuanpan.com/download/checkResult.action?id=52&type=6
+「JavaScript 资源大全中文版」的整理。欢迎扩散、欢迎加入。 https://github.com/jobbole/awesome-javascript-cn
 
 包管理器
 管理着 javascript 库，并提供读取和打包它们的工具。
