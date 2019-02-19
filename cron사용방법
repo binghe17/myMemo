@@ -1,0 +1,31 @@
+======================linux명령====================
+
+crontab -l : 예약된 작업리스트
+crontab -e : 예약된 작업 수정
+crontab -r : 예약된 작업 삭제
+crontab -u 사용자명 : 루트관리자는 해당 사용자의 crontab 파일을 보거나 삭제, 편집가능
+
+*/20 * * * * /usr/bin/php /var/www/html/naversnap2/cron_index.php> /dev/null
+
+출처: http://webdir.tistory.com/174 [WEBDIR]
+
+-------------cron임무로 php를 실행할때 주의점
+1.php의 include할 파일에서 파일경로를 지정할때 __DIR__를 써야함. 상대경로는 cron임무에서 파일을 찾을수 없는 에러가 남.
+  브라우저로 실행하는 php와, cli로 실행하는 php는 차이가 있음. (절대경로 확인)
+```````````
+<?php
+#!/usr/bin/php
+error_reporting(E_ALL & ~E_NOTICE);
+date_default_timezone_set('Asia/Seoul');//Asia/Hong_Kong        Asia/Seoul
+ini_set('max_execution_time', 15*60);//최대 허용 시간 15분
+```````````
+----------------
+
+
+===========log
+tail -f /var/log/httpd/access_log
+tail -f /var/log/httpd/error_log
+tail -f /var/log/mariadb/mariadb.log
+tail -f /var/log/messages
+
+
