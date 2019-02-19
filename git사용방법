@@ -1,0 +1,21 @@
+---------------
+echo "# querylist3" >> README.md
+git init
+git add README.md
+git commit -m "first commit"
+git remote add origin https://github.com/binghe17/aaaaa.git
+git push -u origin master
+
+-------------open vscode terminal
+git init
+git remote add origin https://github.com/binghe17/aaaaa.git
+git push -u origin master
+
+------------clone
+git clone https://github.com/binghe17/aaaaa.git
+
+-------------git 사용하는 툴 설정방법
+git config --global user.name "aaa"
+git config --global user.email aaa@gmail.com
+git remote add origin https://github.com/binghe17/aaaaa.git
+
