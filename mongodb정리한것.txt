@@ -1,0 +1,245 @@
+> mongo
+//mongodb://127.0.0.1:27017
+
+//MongoDB连接
+
+> help
+        db.help()                    help on db methods
+        db.mycoll.help()             help on collection methods
+        sh.help()                    sharding helpers
+        rs.help()                    replica set helpers
+        help admin                   administrative help
+        help connect                 connecting to a db help
+        help keys                    key shortcuts
+        help misc                    misc things to know
+        help mr                      mapreduce
+
+        show dbs                     show database names
+        show collections             show collections in current database
+        show users                   show users in current database
+        show profile                 show most recent system.profile entries with time >= 1ms
+        show logs                    show the accessible logger names
+        show log [name]              prints out the last segment of log in memory, 'global' is default
+        use <db_name>                set current database
+        db.foo.find()                list objects in collection foo
+        db.foo.find( { a : 1 } )     list objects in foo where a == 1
+        it                           result of the last line evaluated; use to further iterate
+        DBQuery.shellBatchSize = x   set default number of items to display on shell
+        exit                         quit the mongo shell
+
+//---------------------------------
+
+> show dbs                  //查看所有数据库
+admin             0.000GB
+test              0.000GB
+
+> use mydb                  //使用数据库，（没有创建则插入数据时自动创建，插入数据时才显示。）
+switched to db mydb
+
+> db                        //查看当前数据库名
+mydb
+
+> db.col1.insert({"name":"aaaa"}) //插入数据，并自动创建结合col1。
+WriteResult({ "nInserted" : 1 })
+> db.col2.insert({"name":"aaaa"}) //插入数据，并自动创建结合col2。
+WriteResult({ "nInserted" : 1 })
+
+
+> show collections          //查看（当前数据库的）所有集合
+col1
+col2
+
+> show dbs
+local   0.000GB
+mydb    0.000GB
+test    0.000GB
+
+
+> show tables                 //查看集合（跟show collection命令一样）
+col1
+col2
+> db.col1.drop()              //删除col1集合
+true
+> show collections            //（可以看到col1被删除了。）
+col2
+
+> db.dropDatabase()           //删除数据库
+{ "dropped" : "mydb", "ok" : 1 }
+
+> show dbs                    //（可以看到已经删除了mydb数据库）
+local   0.000GB
+test    0.000GB
+
+
+db.createCollection("mycol", { capped : true, autoIndexId : true, size : 6142800, max : 10000 } )  //创建固定集合 mycol，整个集合空间大小 6142800 KB, 文档最大个数为 10000 个。
+{ "ok" : 1 } 
+
+//-------------------插入数据，查找
+
+> db.a.insert({"a":"aaaaaaaa"})                               //插入数据
+WriteResult({ "nInserted" : 1 })
+> db.a.find()                                                 //查找所有数据
+{ "_id" : ObjectId("5b261103657d5c35df118530"), "a" : "aaaaaaaa" }
+
+> data1 =({name:"aaaa",age:22,tags:['man','good']})           //给变量赋值
+{ "name" : "aaaa", "age" : 22, "tags" : [ "man", "good" ] }
+> data1
+{ "name" : "aaaa", "age" : 22, "tags" : [ "man", "good" ] }
+
+> db.a.insert(data1)                                          //用（变量方式）插入数据
+WriteResult({ "nInserted" : 1 })
+> db.a.find()
+{ "_id" : ObjectId("5b261103657d5c35df118530"), "a" : "aaaaaaaa" }
+{ "_id" : ObjectId("5b2611c1657d5c35df118531"), "name" : "aaaa", "age" : 22, "tags" : [ "man", "good" ] }
+
+db.col.find().pretty()        //格式化的方式显示数据
+
+//----------
+
+    //更新 参数说明：
+        //query : update的查询条件，类似sql update查询内where后面的。
+        //update : update的对象和一些更新的操作符（如$,$inc...）等，也可以理解为sql update查询内set后面的
+        //upsert : 可选，这个参数的意思是，如果不存在update的记录，是否插入objNew,true为插入，默认是false，不插入。
+        //multi : 可选，mongodb 默认是false,只更新找到的第一条记录，如果这个参数为true,就把按条件查出来多条记录全部更新。
+        //writeConcern :可选，抛出异常的级别。
+
+> db.a.update({uid:22},{$set:{name:"bbbb"}})                  //只修改查找到的一个。（uid删除唯一值时更有效率吧）
+> db.a.update({age:22},{$set:{name:"bbbb"},{multi:true}})     //修改查找到的所有数据：把age=22的数据中的name替换为bbbb
+WriteResult({ "nMatched" : 3, "nUpserted" : 0, "nModified" : 3 })
+
+> db.a.find()
+{ "_id" : ObjectId("5b261103657d5c35df118530"), "a" : "aaaaaaaa" }
+{ "_id" : ObjectId("5b2611c1657d5c35df118531"), "name" : "bbbb", "age" : 22, "tags" : [ "man", "good" ] }
+{ "_id" : ObjectId("5b2613e0657d5c35df118532"), "name" : "bbbb", "age" : 22, "tags" : [ "man", "good" ] }
+{ "_id" : ObjectId("5b2613e1657d5c35df118533"), "name" : "bbbb", "age" : 22, "tags" : [ "man", "good" ] }
+
+//----------
+
+db.a.save({ "_id" : ObjectId("5b2613e1657d5c35df118533"), "name" : "ccc", "age" : 23, "tags" : ["good" ] }) //强制修改，直接注入数据
+WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+
+> db.col.insert(data1)
+db.col.update( { "count" : { $gt : 1 } } , { $set : { "test2" : "OK"} } );              //只更新第一条记录：
+db.col.update( { "count" : { $gt : 3 } } , { $set : { "test2" : "OK"} },false,true );   //全部更新：
+db.col.update( { "count" : { $gt : 4 } } , { $set : { "test5" : "OK"} },true,false );   //只添加第一条：
+db.col.update( { "count" : { $gt : 5 } } , { $set : { "test5" : "OK"} },true,true );    //全部添加加进去:
+db.col.update( { "count" : { $gt : 15 } } , { $inc : { "count" : 1} },false,true );     //全部更新：
+db.col.update( { "count" : { $gt : 10 } } , { $inc : { "count" : 1} },false,false );    //只更新第一条记录：
+
+
+//-----------------
+
+    //删除 参数说明：
+        //query :（可选）删除的文档的条件。
+        //justOne : （可选）如果设为 true 或 1，则只删除一个文档。
+        //writeConcern :（可选）抛出异常的级别。
+
+> db.col.remove({})               //删除所有数据
+> db.col.remove({name:'aaaa'})    //删除部分数据(数据又叫文档） 
+WriteResult({ "nRemoved" : 17 })
+
+//-----------------
+
+> db.col.find({key1:value1, key2:value2}).pretty()
+> db.col.find({$or:[{key1:value1},{key2:value2}]}).pretty()
+> db.col.find({"likes": {$gt:50}, $or: [{"name": "aaaa"},{"title": "happy"}]}).pretty()
+
+> db.col.find({likes : {$gt : 100}})
+> db.col.find({likes : {$gte : 100}})
+> db.col.find({likes : {$lt : 150}})
+> db.col.find({likes : {$lte : 150}})
+> db.col.find({likes : {$lt :200, $gt : 100}})
+> 
+> db.col.find({"title" : {$type : 2}})
+      // 类型                          数字      备注
+      // Double                        1  
+      // String                        2  
+      // Object                        3  
+      // Array                         4    
+      // Binary data                   5  
+      // Undefined                     6        已废弃。
+      // Object id                     7    
+      // Boolean                       8  
+      // Date                          9    
+      // Null                          10   
+      // Regular Expression            11     
+      // JavaScript                    13     
+      // Symbol                        14     
+      // JavaScript (with scope)       15     
+      // 32-bit integer                16     
+      // Timestamp                     17   
+      // 64-bit integer                18     
+      // Min key                       255       Query with -1.
+      // Max key                       127    
+
+
+> db.col.find({},{"title":1,_id:0}).limit(2)              //总输出几条数据
+{ "title" : "PHP 教程" }
+{ "title" : "Java 教程" }
+> db.col.find({},{"title":1,_id:0}).limit(1).skip(1)      //跳过几条数据
+{ "title" : "Java 教程" }
+
+
+> db.col.find({},{"title":1,_id:0}).sort({"likes":-1})    //排序
+{ "title" : "PHP 教程" }
+{ "title" : "Java 教程" }
+{ "title" : "MongoDB 教程" }
+
+//---------------------------------
+
+//更新 参数说明：
+        // background             Boolean           建索引过程会阻塞其它数据库操作，background可指定以后台方式创建索引，即增加 "background" 可选参数。 "background" 默认值为false。
+        // unique                 Boolean           建立的索引是否唯一。指定为true创建唯一索引。默认值为false.
+        // name                   string            索引的名称。如果未指定，MongoDB的通过连接索引的字段名和排序顺序生成一个索引名称。
+        // dropDups               Boolean           在建立唯一索引时是否删除重复记录,指定 true 创建唯一索引。默认值为 false.
+        // sparse                 Boolean           对文档中不存在的字段数据不启用索引；这个参数需要特别注意，如果设置为true的话，在索引字段中不会查询出不包含对应字段的文档.。默认值为 false.
+        // expireAfterSeconds     integer           指定一个以秒为单位的数值，完成 TTL设定，设定集合的生存时间。
+        // v                      index version     索引的版本号。默认的索引版本取决于mongod创建索引时运行的版本。
+        // weights                document          索引权重值，数值在 1 到 99,999 之间，表示该索引相对于其他索引字段的得分权重。
+        // default_language       string            对于文本索引，该参数决定了停用词及词干和词器的规则的列表。 默认为英语
+        // language_override      string            对于文本索引，该参数指定了包含在文档中的字段名，语言覆盖默认的language，默认值为 language.
+
+//索引
+> db.col.createIndex({"title":1})                                //1为按升序 创建索引
+> db.col.createIndex({"title":-1})                               //-1为按降序 创建索引
+> db.col.createIndex({"title":1,"description":-1})               //复合索引，给多个字段排序后创建索引
+> db.values.createIndex({open: 1, close: 1}, {background: true}) //在后台创建索引
+
+
+//-----------------------------统计，聚合
+
+> db.mycol.aggregate([{$group : {_id : "$by_user", num_tutorial : {$sum : 1}}}])
+{
+   "result" : [
+      { "_id" : "runoob.com", "num_tutorial" : 2 },
+      { "_id" : "Neo4j"， "num_tutorial" : 1 }
+   ],
+   "ok" : 1
+}
+//等同于select by_user, count(*) from mycol group by by_user
+
+db.mycol.aggregate([{$group : {_id : "$by_user", num_tutorial : {$sum : "$likes"}}}])  //计算总和
+db.mycol.aggregate([{$group : {_id : "$by_user", num_tutorial : {$avg : "$likes"}}}])  //计算平均值
+db.mycol.aggregate([{$group : {_id : "$by_user", num_tutorial : {$min : "$likes"}}}])  //获取集合中所有文档对应值得最小值。
+db.mycol.aggregate([{$group : {_id : "$by_user", num_tutorial : {$max : "$likes"}}}])  //获取集合中所有文档对应值得最大值。
+db.mycol.aggregate([{$group : {_id : "$by_user", url : {$push: "$url"}}}])             //在结果文档中插入值到一个数组中。
+db.mycol.aggregate([{$group : {_id : "$by_user", url : {$addToSet : "$url"}}}])        //在结果文档中插入值到一个数组中，但不创建副本。
+db.mycol.aggregate([{$group : {_id : "$by_user", first_url : {$first : "$url"}}}])     //根据资源文档的排序获取第一个文档数据。
+db.mycol.aggregate([{$group : {_id : "$by_user", last_url : {$last : "$url"}}}])       //根据资源文档的排序获取最后一个文档数据
+
+
+----------管道
+
+        $project：修改输入文档的结构。可以用来重命名、增加或删除域，也可以用于创建计算结果以及嵌套文档。
+        $match：用于过滤数据，只输出符合条件的文档。$match使用MongoDB的标准查询操作。
+        $limit：用来限制MongoDB聚合管道返回的文档数。
+        $skip：在聚合管道中跳过指定数量的文档，并返回余下的文档。
+        $unwind：将文档中的某一个数组类型字段拆分成多条，每条包含数组中的一个值。
+        $group：将集合中的文档分组，可用于统计结果。
+        $sort：将输入文档排序后输出。
+        $geoNear：输出接近某一地理位置的有序文档。
+
+db.article.aggregate( { $project : { title : 1 , author : 1 , }}  );
+db.article.aggregate( { $project : {  _id : 0 , title : 1 , author : 1 }});
+db.articles.aggregate( [ { $match : { score : { $gt : 70, $lte : 90 } } }, { $group: { _id: null, count: { $sum: 1 } } } ] );
+db.article.aggregate( { $skip : 5 });
