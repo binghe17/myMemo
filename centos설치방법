@@ -1,0 +1,358 @@
+=======================================================================
+
+-------------WinSCP설정:  https://gocoder.tistory.com/61
+Session:
+File protocol: 	SCP
+Host name: 	13.125.46.215
+Port number: 	22
+User name: 	centos
+Passord: 		(공백)
+
+Advanced...고급설정 버튼
+-------
+Environment>Directories:
+     - Remote directory: 	/			(마지막으로 켠 위치)
+     - Local directory: 	C:\Users\이름\Desktop 	(바탕화면 경로로 바꾸면 좋음)
+
+Environment>SCP/Shell:
+     - Shell: 		sudo su -		(중요: 이렇게 하지 않으면 권한수정과 업로드 할수 없음.)
+
+SSH>Authentication:
+      - Allow agent forwarding	(체크하기)
+      - Private key file: 	D:\tools\aws\waterplay_ssh\waterplay.ppk
+
+========================================================================
+
+---------------centos server -------------
+
+//------- https://www.cnblogs.com/me80/p/7218883.html
+//------- https://blog.lael.be/post/1721
+
+uname -a					#리눅스 버전
+cat  /etc/redhat-release			#CentOS버전
+cat /proc/cpuinfo | grep processor | wc -l 	#CPU코어수
+df -h					#하드디스크
+free -m					#메모리
+ip addr					#내부IP
+netstat -tulp				#사용된 포트
+sestatus					#SELINUX설정정보
+
+date						#현재 EST시간
+#timedatectl list-timezones | grep Seoul			#Asia/Seoul
+#ln -s /usr/share/zoneinfo/Asia/Seoul /etc/localtime 	#수동으로 한국시간 변경
+timedatectl set-timezone Asia/Seoul			#타이존, 한국시간간 변경
+date						#현재 한국시간
+
+ls			#파일 리스트 보기
+pwd			#폴더 위치(절대경로)
+
+#yum install firewalld
+#firewall-cmd --zone=public --add-port=80/tcp --permanent
+#firewall-cmd --reload
+
+#sudo chmod 777 /devloper
+
+
+//----------- 기본 서버 세팅
+sudo su root
+
+yum update -y
+yum install httpd httpd-devel -y
+httpd -v
+systemctl start  httpd 	#service httpd start
+systemctl enable  httpd
+systemctl status httpd
+
+
+yum install mariadb mariadb-server mariadb-libs mariadb-devel -y
+#rpm -qa |grep maria
+systemctl start  mariadb 	#service mariadb start
+systemctl enable  mariadb 
+systemctl status  mariadb 
+
+#mysql_secure_installation      #MariaDB 기본 환경설정  y,y,n,y,y    (Disallow root ->n)
+mysql -uroot -p
+show databases; 		#ctrl+c 나가기
+
+
+
+yum install php -y
+yum install php-mysql -y
+#rpm -ql php-mysql
+#yum search php-
+yum install -y php-gd php-ldap php-odbc php-pear php-xml php-xmlrpc php-mbstring php-snmp php-soap curl curl-devel php-bcmath
+
+
+cd  /var/www/html/
+vi phpinfo.php		#i  #<?php phpinfo();  #:wq
+systemctl restart httpd
+
+
+#vi /etc/my.cnf		#----[mysqld] 항목에 다음 2 줄을 추가한다.
+character-set-server = utf8mb4
+collation-server = utf8mb4_unicode_ci
+
+
+service mariadb restart
+###
+#adduser laelbe	#laelbe 사용자 계정 생성
+#passwd laelbe	#비밀번호 설정
+#su -l laelbe
+#mkdir www
+#exit
+
+--------reboot auto start
+chkconfig httpd on			#부팅시 자동실행
+chkconfig mariadb on		#부팅시 자동실행
+systemctl list-unit-files | grep httpd	#확인
+systemctl list-unit-files | grep mariadb	#확인
+
+#chmod 701 /home/*
+chmod 777 /var/www/html	#모든 사용자에게 업로드 수정 권한 부여.
+
+
+---------- php5.6 / phpmyadmin설치
+yum -y install epel-release
+yum -y install http://rpms.remirepo.net/enterprise/remi-release-7.rpm
+yum-config-manager --enable remi-php56
+yum -y install php php-opcache
+	
+#yum-config-manager --disable remi-php72
+#yum-config-manager --enable remi-php72
+#yum update php\*	
+#yum install php56
+	
+php -v
+yum install phpmyadmin -y
+service httpd restart
+
+
+-------------보안 끄기(알수없는 에러는 최소화 하자.)  
+----  https://www.linux.co.kr/home2/board/subbs/board.php?bo_table=lecture&wr_id=1731
+sestatus				#SELinux설정정보
+sestatus -v 			#SELinux상태
+setenforce 0			#SELiux 보안 임시끄기 ???
+---vi /etc/sysconfig/selinux		#SELinux 끄기(재시작해도 유효)
+SELINUX=disabled	#로 고치고 저장 :wq    
+---
+
+#ls -Z 
+#ps axZ | grep squid 
+
+
+--------------zip/unzip 압축 프로그램, (프로젝트 압축해서 업로드)
+yum -y install zip unzip
+zip -r amina.zip ./		#압축
+unzip amina.zip		#압축풀기
+
+
+-------
+#chmod 707 data
+#chmod uo+rwx data
+#mkdir data
+
+
+--------
+aws파일 덥어쓰기. 
+
+amina2.zip을 업로드 하고 압축풀고, data폴더권한을 777로 주면 로그인이 된다.
+
+
+
+======================================================================
+======================================================================
+
+분류	기능	링크	설명
+centos	VPS서버 세팅	https://www.cnblogs.com/me80/p/7218883.html	yum으로 LAMP환경 만들기
+centos	VPS서버 세팅(꿋)	https://blog.lael.be/post/1721	1. LAMP환경 만들기
+centos	VPS서버 세팅	http://sangchul.kr/665	2. PHP 7.2 설치(업그레이드) 
+			http://www.happyjung.com/lecture/2481	Apache퍼미션 문제 (403문제)
+			
+putty	다운로드	https://www.putty.org/	
+putty	aws의 ssl key로 연결	PuTTY error: "No supported authentication methods available"	https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/putty.html#putty-private-key
+putty	aws의 ssl key로 연결	1.aws에서 생성한 초기 공개키를 내려받는다. 	
+		2.puttygen실행, Conversions -> Import Key; save public key, and save privatekey	
+		3.공개키를 aws서버에 업르드하고 putty를 연결해본다.putty에서는 private키를 사용한다.	
+
+=====================================================================
+
+분류	명령	설명	사용법
+권한변경	sudo su root	관리자권한으로 변경	
+시스템정보	cat /etc/centos-release	centos버전보기 CentOS Linux release 7.5.1804 (Core)	혹은 grep . /etc/*-release
+centos비번변경	sudo passwd centos		admin.
+			
+다운로드	sudo yum install -y wget		
+	sudo yum install -y unzip zip	ZIP압축툴	https://blog.csdn.net/qq_15071263/article/details/73746971
+	sudo yum update -y	업데이트	
+	sudo yum install -y httpd	apache서버 다운로드	
+	sudo yum install -y php	php 다운로드 (초기5.4버전다운됨)	
+	sudo yum install -y mysql	mysql 다운로드	
+			
+			
+서비스 	systemctl enable httpd	리부팅시 자동실행 설정 ,httpd, mysqld등	
+서비스 	systemctl start httpd	서비스 실행	
+서비스 	systemctl stop httpd	서비스 중지	
+서비스 	systemctl status httpd	서비스 켜진 여부 상태확인	
+			
+인터넷연결정보	netstat -tulp	감시중인 포트 (서비스)	
+인터넷연결정보	ifconfig		
+			
+DB서버연결	mysql -uroot -p		pw: admin.
+			
+			
+폴더 권한변경	sudo chmod 777 html		
+		
+centos7 下 phpmyadmin 出现403 forbidden解决方案 https://blog.csdn.net/oInnovator1/article/details/78604871	
+
+=====================================================================
+
+
+-----------phpinfo.php
+extension_dir			/usr/lib64/php/modules
+Loaded Configuration File		/etc/php.ini
+
+
+
+------------delete
+yum list installed | grep php
+ 
+yum remove php*
+yum remove httpd*
+yum remove mysql*
+yum erase php php-pear php-mysql php-cli php-common
+yum erase httpd httpd-tools apr apr-util
+yum remove mysql mysql-server
+
+
+
+------------------aws   server setting 
+
+yum update
+yum install httpd
+yum install php
+yum install -y php-gd php-ldap php-odbc php-pear php-xml php-xmlrpc php-mbstring php-snmp php-soap curl curl-devel php-bcmath
+yum search php-
+
+
+yum install mariadb
+yum install mariadb-server
+service mariadb start
+/usr/bin/mysql_secure_installation     #all y
+
+
+
+yum install php-mysql
+
+
+service httpd start
+service mariadb start
+	--
+	vi /etc/my.cnf
+	[mysqld] 항목에 다음 2 줄을 추가한다.
+	character-set-server = utf8mb4
+	collation-server = utf8mb4_unicode_ci
+	--
+service mariadb restart
+
+
+------------- php5.6 / phpmyadmin설치
+yum -y install epel-release
+yum install http://rpms.remirepo.net/enterprise/remi-release-7.rpm
+yum-config-manager --enable remi-php56
+yum -y install php php-opcache
+
+#yum-config-manager --disable remi-php72
+#yum-config-manager --enable remi-php72
+#yum update php\*
+#yum install php56
+
+php -v
+yum install phpmyadmin
+
+-------- aws파일 덥어쓰기. 혹은 아래대로 추가
+
+	---vi /etc/httpd/conf/httpd.conf
+	---#파일 맨 밑줄에 다음의 Include 구문 추가. 
+# Virtual hosts
+Include conf/extra/httpd-vhosts.conf
+
+	---#extra 폴더 생성 및 그 하위에 httpd-vhosts.conf 파일 생성
+	---mkdir extra
+	---vi extra/httpd-vhosts.conf
+<VirtualHost *:80>
+  DocumentRoot "/var/www/html"
+  ServerName waterplay.kr
+  ServerAlias www.waterplay.kr
+ 
+  <Directory /var/www/html/>
+    Options FollowSymLinks MultiViews
+    AllowOverride All
+    Order allow,deny
+    allow from all
+ 
+    require all granted
+  </Directory>
+ 
+</VirtualHost>
+
+	---service httpd configtest
+	---service httpd restart
+	---chmod 701 /home/*
+	
+------reboot auto start
+chkconfig httpd on
+chkconfig mariadb on
+systemctl list-unit-files | grep httpd
+systemctl list-unit-files | grep mariadb
+
+---------
+yum install zip unzip
+
+
+
+--------other info
+ 
+cat /etc/redhat-release
+yum info php | egrep 'Name|Version'
+ln -sf /usr/share/zoneinfo/Asia/Seoul /etc/localtime     #시스템시간
+netstat -tulp
+ifconfig
+
+--
+sudo su root
+sudo passwd centos
+
+systemctl enable httpd
+systemctl start httpd
+systemctl stop httpd
+systemctl status httpd
+
+mysql -uroot -p
+
+
+----SELNUX  (폴더보안. 끄지말것)
+setenforce 0
+	---vi /etc/sysconfig/selinux
+SELINUX=enforcing   #disabled
+---
+
+chcon -t public_content_rw_t /var/www
+setsebool -P allow_smbd_anon_write 1
+setsebool -P allow_httpd_anon_write 1
+
+
+---------
+
+ls -Z
+getsebool -a | grep httpd
+setsebool -P httpd_can_network_connect=on
+setsebool -P httpd_can_network_connect_
+---/var/www/html/data/session 폴더의 권한을 707로 바꿔야 로그인됨
+서버를 이용중이시라면 php.ini 파일에서 
+short_open_tag = On
+
+---/etc/selinux/config 파일에서 Enforce 설정을 Permissive 로 변경. 
+
+chcon -R --reference=/var/www/html /home
+setsebool -P allow_httpd_anon_write=1
+setsebool -P allow_httpd_sys_script_anon_write=1
