@@ -1,0 +1,58 @@
+-------kcb 본인인증 ,아이폰 safari에서의 에러.
+
+문제: kcb 모바일 본인인증 페이지의 리턴값을 넘겨주지 못해서 빈화면에서 걸려있는 문제 해결. 
+        (아이폰의safari보안문제 https->http로 값을 넘겨줄수 없음.)
+원인: 에러메세지(해당양식은 보안되지 않았습니다)    https://gungfu.tistory.com/64
+해결: http사이트를 https로 바꿈. 
+
+=================
+1. SSL보안 인증서 구입 (COMODO Positive SSL 1년14000원)  https://www.qtrustssl.com
+
+구매하기:
+	SSL 상품 선택: Positive SSL    ★ SSL인증서는 SHA-2 알고리즘으로만 발급됩니다.
+	사용 웹서버: Apache/ModSSL
+	인증서 개인키 비밀번호: (개인키 비밀번호 입력)
+	CSR 입력방법: CSR자동생성(개인키 포함)
+	인증방법 선택: http
+
+(구매내역에서 인증서와 발급확인서를 파일다운드 및 서버에 ModSSL설치후 아래 설명데로 업로드)
+
+2. 인증서 설치가이드 https://www.qtrustssl.com/guide/install_apache2.php
+2. Amazon Linux 2에 Apache/ModSSL 웹 서버 구성  https://docs.aws.amazon.com/ko_kr/AWSEC2/latest/UserGuide/SSL-on-an-instance.html
+
+sudo systemctl is-enabled httpd
+#sudo systemctl start httpd && sudo systemctl enable httpd
+
+sudo yum update -y
+sudo yum install -y mod_ssl
+
+sudo su root
+apachectl stop
+apachectl start
+netstat -nap |grep httpd
+reboot
+
+---비번없이기
+cd /etc/pki/tls/private/
+cp custom.key custom.key.bak
+openssl rsa -in custom.key -passin pass:비번 -out custom.key.nocrypt 
+mv custom.key.nocrypt custom.key
+chown root:root custom.key
+chmod 600 custom.key
+systemctl restart httpd
+
+
+---SSL관련 수정할 파일 리스트
+/etc/httpd/conf.d/ssl.conf
+/etc/pki/
+
+-----.htaccess 파일 생성
+RewriteEngine On
+
+RewriteCond %{HTTPS} off
+RewriteCond %{HTTP:X-Forwarded-Proto} !https
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+------그누보드 https설정
+1. SSL 적용 후 무조건 https로 접속되게 하는 방법  https://sir.kr/g5_tip/8916
+2. 아미나 테마 미소베이직 HTTPS 적용 방법 https://www.wsgvet.com/bbs/board.php?bo_table=home&wr_id=463
