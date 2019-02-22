@@ -18,7 +18,7 @@
 (구매내역에서 인증서와 발급확인서를 파일다운드 및 서버에 ModSSL설치후 아래 설명데로 업로드)
 
 2. 인증서 설치가이드 https://www.qtrustssl.com/guide/install_apache2.php
-2. Amazon Linux 2에 Apache/ModSSL 웹 서버 구성  https://docs.aws.amazon.com/ko_kr/AWSEC2/latest/UserGuide/SSL-on-an-instance.html
+3. Amazon Linux 2에 Apache/ModSSL 웹 서버 구성  https://docs.aws.amazon.com/ko_kr/AWSEC2/latest/UserGuide/SSL-on-an-instance.html
 
 sudo systemctl is-enabled httpd
 #sudo systemctl start httpd && sudo systemctl enable httpd
@@ -43,8 +43,12 @@ systemctl restart httpd
 
 
 ---SSL관련 수정할 파일 리스트
-/etc/httpd/conf.d/ssl.conf
-/etc/pki/
+추가 ../htdocs/.well-known  (메일로 받은 파일을 설명따라 업로드, http인증방식) (발금완료되는데 10분도 안걸렸음)
+추가 ../htdocs/.htaccess    (아래 [그누보드 https설정]의 링크1 참고)
+수정 /etc/httpd/conf.d/ssl.conf   (위에 링크3 )
+수정 /etc/pki/tls/certs/localhost.crt      (sitename_com.crt)
+추가 /etc/pki/tls/certs/server-chain.crt  (ChainCA.crt)
+수정 /etc/pki/tls/private/localhost.key   (sitename_com.crt)
 
 -----.htaccess 파일 생성
 RewriteEngine On
