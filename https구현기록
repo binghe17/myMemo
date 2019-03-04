@@ -52,11 +52,17 @@ systemctl restart httpd
 
 -----.htaccess 파일 생성
 RewriteEngine On
+RewriteCond %{HTTPS} off [OR]
+RewriteCond %{HTTP_HOST} ^www\. [NC]
+RewriteCond %{HTTP_HOST} ^(?:www\.)?(.+)$ [NC]
+RewriteRule ^ https://%1%{REQUEST_URI} [L,NE,R=301]
 
-RewriteCond %{HTTPS} off
-RewriteCond %{HTTP:X-Forwarded-Proto} !https
-RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
-
+----- .htaccess파일 설정사용 + index of page파일리스트 비공개
+/etc/httpd/conf/httpd.conf수정
+<Directory "/var/www/html">
+	Options -Indexes	#apache disable index of page
+	AllowOverride All	#use .htaccess file setting
+</Directory>
 ------그누보드 https설정
 1. SSL 적용 후 무조건 https로 접속되게 하는 방법  https://sir.kr/g5_tip/8916
 2. 아미나 테마 미소베이직 HTTPS 적용 방법 https://www.wsgvet.com/bbs/board.php?bo_table=home&wr_id=463
