@@ -50,7 +50,7 @@ systemctl restart httpd
 추가 /etc/pki/tls/certs/server-chain.crt  (ChainCA.crt)
 수정 /etc/pki/tls/private/localhost.key   (sitename_com.crt)
 
------.htaccess 파일 생성
+-----.htaccess 파일 생성 (https, non-www방식으로 301 redirect)
 RewriteEngine On
 RewriteCond %{HTTPS} off [OR]
 RewriteCond %{HTTP_HOST} ^www\. [NC]
